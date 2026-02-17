@@ -152,7 +152,19 @@
 		</div>
 	</div>
 
-	<div id="Effects" class="tabcontent">
+	<div id="Teams" class="tabcontent">
+		<p class="labels hd">Select Your Team</p>
+		<p class="labels" style="text-align:center;padding:4px 8px;">Please select the team you would like your Celly Light to light up with.</p>
+		<p id="teamCurrent" class="labels" style="text-align:center;padding:4px 0;">Current: <span id="teamName">None</span></p>
+		<div id="teamList" class="list">
+			Loading...
+		</div>
+		<div style="padding:8px 0;text-align:center;">
+			<button class="btn btn-s" onclick="openTab(0)"><i class="icons btn-icon">&#xe2b3;</i> Back</button>
+		</div>
+	</div>
+
+	<div id="Effects" class="tabcontent" style="display:none">
 		<div id="fx">
 			<p class="labels hd" id="modeLabel">Effect mode</p>
 			<div class="staytop fnd" id="fxFind" onmousedown="preventBlur(event);">
