@@ -347,6 +347,48 @@ void initServer()
     request->send(200, FPSTR(CONTENT_TYPE_PLAIN), (String)ESP.getFreeHeap());
   });
 
+  // Teams API - GET returns current MQTT group topic, POST changes it
+  server.on(F("/api/team"), HTTP_GET, [](AsyncWebServerRequest *request){
+    #ifndef WLED_DISABLE_MQTT
+    char resp[128];
+    snprintf_P(resp, sizeof(resp), PSTR("{\"topic\":\"%s\"}"), mqttGroupTopic);
+    request->send(200, FPSTR(CONTENT_TYPE_JSON), resp);
+    #else
+    request->send(200, FPSTR(CONTENT_TYPE_JSON), F("{\"topic\":\"\",\"error\":\"MQTT disabled\"}"));
+    #endif
+  });
+
+  AsyncCallbackJsonWebHandler* teamHandler = new AsyncCallbackJsonWebHandler(F("/api/team"), [](AsyncWebServerRequest *request) {
+    #ifndef WLED_DISABLE_MQTT
+    if (!requestJSONBufferLock(20)) {
+      request->send(503, FPSTR(CONTENT_TYPE_JSON), F("{\"success\":false,\"error\":\"busy\"}"));
+      return;
+    }
+    DeserializationError error = deserializeJson(*pDoc, (uint8_t*)(request->_tempObject));
+    JsonObject root = pDoc->as<JsonObject>();
+    if (error || root.isNull() || !root.containsKey("topic")) {
+      releaseJSONBufferLock();
+      request->send(400, FPSTR(CONTENT_TYPE_JSON), F("{\"success\":false,\"error\":\"invalid\"}"));
+      return;
+    }
+    const char* newTopic = root["topic"].as<const char*>();
+    if (newTopic && strlen(newTopic) > 0 && strlen(newTopic) <= MQTT_MAX_TOPIC_LEN) {
+      strlcpy(mqttGroupTopic, newTopic, MQTT_MAX_TOPIC_LEN+1);
+      releaseJSONBufferLock();
+      // disconnect MQTT so it reconnects with new subscriptions
+      if (mqtt && mqtt->connected()) mqtt->disconnect();
+      doSerializeConfig = true; // save config
+      request->send(200, FPSTR(CONTENT_TYPE_JSON), F("{\"success\":true}"));
+    } else {
+      releaseJSONBufferLock();
+      request->send(400, FPSTR(CONTENT_TYPE_JSON), F("{\"success\":false,\"error\":\"invalid topic\"}"));
+    }
+    #else
+    request->send(200, FPSTR(CONTENT_TYPE_JSON), F("{\"success\":false,\"error\":\"MQTT disabled\"}"));
+    #endif
+  });
+  server.addHandler(teamHandler);
+
 #ifdef WLED_ENABLE_USERMOD_PAGE
   server.on("/u", HTTP_GET, [](AsyncWebServerRequest *request) {
     handleStaticContent(request, "", 200, FPSTR(CONTENT_TYPE_HTML), PAGE_usermod, PAGE_usermod_length);

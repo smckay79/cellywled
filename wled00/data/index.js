@@ -320,6 +320,7 @@ function openTab(tabI, force = false)
 		case 1: window.location.hash = "Effects"; break;
 		case 2: window.location.hash = "Segments"; break;
 		case 3: window.location.hash = "Presets"; break;
+		case 4: window.location.hash = "Teams"; loadTeams(); break;
 	}
 }
 
@@ -329,6 +330,7 @@ function handleLocationHash() {
 		case "#Effects": openTab(1); break;
 		case "#Segments": openTab(2); break;
 		case "#Presets": openTab(3); break;
+		case "#Teams": openTab(4); break;
 	}
 }
 
@@ -3014,8 +3016,80 @@ function unfocusSliders()
 	gId("sliderIntensity").blur();
 }
 
+// Teams tab
+var teamsList = [
+	{name: "Default", topic: "wled/all"},
+	{name: "Team Red", topic: "wled/team-red"},
+	{name: "Team Blue", topic: "wled/team-blue"},
+	{name: "Team Green", topic: "wled/team-green"},
+	{name: "Team Yellow", topic: "wled/team-yellow"},
+	{name: "Team Purple", topic: "wled/team-purple"},
+	{name: "Team Orange", topic: "wled/team-orange"},
+	{name: "Team White", topic: "wled/team-white"}
+];
+
+var currentTeamTopic = "";
+
+function loadTeams()
+{
+	fetch(getURL('/api/team'), {method: 'GET'})
+	.then(res => res.json())
+	.then(json => {
+		currentTeamTopic = json.topic || "";
+		renderTeams();
+	})
+	.catch(()=>{ renderTeams(); });
+}
+
+function renderTeams()
+{
+	var cn = gId('teamName');
+	var found = false;
+	for (var i=0; i<teamsList.length; i++) {
+		if (teamsList[i].topic === currentTeamTopic) {
+			cn.textContent = teamsList[i].name;
+			found = true;
+			break;
+		}
+	}
+	if (!found) cn.textContent = currentTeamTopic || "None";
+
+	var html = "";
+	for (var i=0; i<teamsList.length; i++) {
+		var t = teamsList[i];
+		var sel = (t.topic === currentTeamTopic) ? " active" : "";
+		html += '<div class="lstI">';
+		html += '<label class="radio schkl">';
+		html += '<input type="radio" name="team" value="' + t.topic + '"' + (sel ? ' checked' : '') + ' onchange="selectTeam(this.value)">';
+		html += '<div class="lstIcontent"><span class="lstIname' + sel + '">' + t.name + '</span></div>';
+		html += '</label></div>';
+	}
+	gId('teamList').innerHTML = html;
+}
+
+function selectTeam(topic)
+{
+	showToast("Switching team...");
+	fetch(getURL('/api/team'), {
+		method: 'POST',
+		headers: {"Content-Type": "application/json"},
+		body: JSON.stringify({topic: topic})
+	})
+	.then(res => res.json())
+	.then(json => {
+		if (json.success) {
+			currentTeamTopic = topic;
+			renderTeams();
+			showToast("Team updated!");
+		} else {
+			showToast("Failed to update team", true);
+		}
+	})
+	.catch(()=>{ showToast("Connection error", true); });
+}
+
 // sliding UI
-const _C = d.querySelector('.container'), N = 4;
+const _C = d.querySelector('.container'), N = 5;
 
 let iSlide = 0, x0 = null, scrollS = 0, locked = false;
 
@@ -3093,7 +3167,7 @@ function togglePcMode(fromB = false)
 	if (pcMode && !ap) gId('edit').classList.remove("hide"); else gId('edit').classList.add("hide");
 	gId('bot').style.height = (pcMode && !cfg.comp.pcmbot) ? "0":"auto";
 	sCol('--bh', gId('bot').clientHeight + "px");
-	_C.style.width = (pcMode || simplifiedUI)?'100%':'400%';
+	_C.style.width = (pcMode || simplifiedUI)?'100%':'500%';
 }
 
 function mergeDeep(target, ...sources)
@@ -3237,6 +3311,7 @@ function simplifyUI() {
 	gId("Effects").style.display = "none";
 	gId("Segments").style.display = "none";
 	gId("Presets").style.display = "none";
+	gId("Teams").style.display = "none";
 
 	// Hide filter options
 	gId("filters").style.display = "none";
