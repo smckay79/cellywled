@@ -317,20 +317,14 @@ function openTab(tabI, force = false)
 	updateTablinks(tabI);
 	switch (tabI) {
 		case 0: window.location.hash = "Colors"; break;
-		case 1: window.location.hash = "Effects"; break;
-		case 2: window.location.hash = "Segments"; break;
-		case 3: window.location.hash = "Presets"; break;
-		case 4: window.location.hash = "Teams"; loadTeams(); break;
+		case 1: window.location.hash = "Teams"; loadTeams(); break;
 	}
 }
 
 function handleLocationHash() {
 	switch (window.location.hash) {
 		case "#Colors": openTab(0); break;
-		case "#Effects": openTab(1); break;
-		case "#Segments": openTab(2); break;
-		case "#Presets": openTab(3); break;
-		case "#Teams": openTab(4); break;
+		case "#Teams": openTab(1); break;
 	}
 }
 
@@ -3089,7 +3083,7 @@ function selectTeam(topic)
 }
 
 // sliding UI
-const _C = d.querySelector('.container'), N = 5;
+const _C = d.querySelector('.container'), N = 2;
 
 let iSlide = 0, x0 = null, scrollS = 0, locked = false;
 
