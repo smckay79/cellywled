@@ -347,14 +347,14 @@ void initServer()
     request->send(200, FPSTR(CONTENT_TYPE_PLAIN), (String)ESP.getFreeHeap());
   });
 
-  // Teams API - GET returns current MQTT group topic, POST changes it
+  // Teams API - GET returns current MQTT device topic, POST sets device topic, broker, and credentials
   server.on(F("/api/team"), HTTP_GET, [](AsyncWebServerRequest *request){
     #ifndef WLED_DISABLE_MQTT
-    char resp[128];
-    snprintf_P(resp, sizeof(resp), PSTR("{\"topic\":\"%s\"}"), mqttGroupTopic);
+    char resp[256];
+    snprintf_P(resp, sizeof(resp), PSTR("{\"deviceTopic\":\"%s\",\"broker\":\"%s\"}"), mqttDeviceTopic, mqttServer);
     request->send(200, FPSTR(CONTENT_TYPE_JSON), resp);
     #else
-    request->send(200, FPSTR(CONTENT_TYPE_JSON), F("{\"topic\":\"\",\"error\":\"MQTT disabled\"}"));
+    request->send(200, FPSTR(CONTENT_TYPE_JSON), F("{\"deviceTopic\":\"\",\"error\":\"MQTT disabled\"}"));
     #endif
   });
 
@@ -366,16 +366,28 @@ void initServer()
     }
     DeserializationError error = deserializeJson(*pDoc, (uint8_t*)(request->_tempObject));
     JsonObject root = pDoc->as<JsonObject>();
-    if (error || root.isNull() || !root.containsKey("topic")) {
+    if (error || root.isNull() || !root.containsKey("deviceTopic")) {
       releaseJSONBufferLock();
       request->send(400, FPSTR(CONTENT_TYPE_JSON), F("{\"success\":false,\"error\":\"invalid\"}"));
       return;
     }
-    const char* newTopic = root["topic"].as<const char*>();
-    if (newTopic && strlen(newTopic) > 0 && strlen(newTopic) <= MQTT_MAX_TOPIC_LEN) {
-      strlcpy(mqttGroupTopic, newTopic, MQTT_MAX_TOPIC_LEN+1);
+    const char* newDeviceTopic = root["deviceTopic"].as<const char*>();
+    const char* newBroker = root["broker"] | "";
+    const char* newUser = root["user"] | "";
+    const char* newPass = root["pass"] | "";
+    if (newDeviceTopic && strlen(newDeviceTopic) > 0 && strlen(newDeviceTopic) <= MQTT_MAX_TOPIC_LEN) {
+      strlcpy(mqttDeviceTopic, newDeviceTopic, MQTT_MAX_TOPIC_LEN+1);
+      // Clear group topic
+      mqttGroupTopic[0] = '\0';
+      // Set broker
+      if (strlen(newBroker) > 0) strlcpy(mqttServer, newBroker, MQTT_MAX_SERVER_LEN+1);
+      // Set credentials
+      if (strlen(newUser) > 0) strlcpy(mqttUser, newUser, 41);
+      if (strlen(newPass) > 0) strlcpy(mqttPass, newPass, 65);
+      // Enable MQTT
+      mqttEnabled = true;
       releaseJSONBufferLock();
-      // disconnect MQTT so it reconnects with new subscriptions
+      // disconnect MQTT so it reconnects with new settings
       if (mqtt && mqtt->connected()) mqtt->disconnect();
       doSerializeConfig = true; // save config
       request->send(200, FPSTR(CONTENT_TYPE_JSON), F("{\"success\":true}"));
