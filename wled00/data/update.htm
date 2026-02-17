@@ -5,7 +5,10 @@
 	<title>WLED Update</title>
 	<script>
 		function B() { window.history.back(); }
-		function U() { document.getElementById("uf").style.display="none";document.getElementById("msg").style.display="block"; }
+		function U() {
+			if(document.getElementById("sv").checked) document.getElementById("uf").action="./update?skipValidation=1";
+			document.getElementById("uf").style.display="none";document.getElementById("msg").style.display="block";
+		}
 		function GetV() {/*injected values here*/}
 	</script>
 	<style>
@@ -21,6 +24,7 @@
 		style="vertical-align: text-bottom; display: inline-flex;">
 		<img src="https://img.shields.io/github/release/Aircoookie/WLED.svg?style=flat-square"></a><br>
 		<input type='file' name='update' required><br> <!--should have accept='.bin', but it prevents file upload from android app-->
+		<input type="checkbox" id="sv"> <label for="sv">Ignore firmware validation</label><br>
 		<button type="submit">Update!</button><br>
 		<button type="button" onclick="B()">Back</button>
 	</form>
