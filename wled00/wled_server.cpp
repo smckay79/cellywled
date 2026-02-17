@@ -459,6 +459,19 @@ void initServer()
       #endif
       Update.begin((ESP.getFreeSketchSpace() - 0x1000) & 0xFFFFF000);
     }
+    #ifdef ESP8266
+    // Patch flash size in firmware header to match real chip when validation is skipped
+    if (!index && len >= 4 && data[0] == 0xE9 && request->hasParam("skipValidation")) {
+      uint32_t realSize = ESP.getFlashChipRealSize();
+      uint8_t flashSizeCode = 0x00; // 512KB default
+      if      (realSize >= 16*1024*1024) flashSizeCode = 0x09;
+      else if (realSize >= 8*1024*1024)  flashSizeCode = 0x08;
+      else if (realSize >= 4*1024*1024)  flashSizeCode = 0x04;
+      else if (realSize >= 2*1024*1024)  flashSizeCode = 0x03;
+      else if (realSize >= 1*1024*1024)  flashSizeCode = 0x02;
+      data[3] = (data[3] & 0x0F) | (flashSizeCode << 4);
+    }
+    #endif
     if(!Update.hasError()) Update.write(data, len);
     if(final){
       if(Update.end(true)){
