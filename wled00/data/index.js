@@ -3012,14 +3012,8 @@ function unfocusSliders()
 
 // Teams tab
 var teamsList = [
-	{name: "Default", topic: "wled/all"},
-	{name: "Team Red", topic: "wled/team-red"},
-	{name: "Team Blue", topic: "wled/team-blue"},
-	{name: "Team Green", topic: "wled/team-green"},
-	{name: "Team Yellow", topic: "wled/team-yellow"},
-	{name: "Team Purple", topic: "wled/team-purple"},
-	{name: "Team Orange", topic: "wled/team-orange"},
-	{name: "Team White", topic: "wled/team-white"}
+	{name: "Calgary Flames", deviceTopic: "/wled/flamesscore", user: "wledflames", pass: "test1234"},
+	{name: "Edmonton Oilers", deviceTopic: "celly/oilerssigns", user: "wledoilers", pass: "oilers134!"}
 ];
 
 var currentTeamTopic = "";
@@ -3029,7 +3023,7 @@ function loadTeams()
 	fetch(getURL('/api/team'), {method: 'GET'})
 	.then(res => res.json())
 	.then(json => {
-		currentTeamTopic = json.topic || "";
+		currentTeamTopic = json.deviceTopic || "";
 		renderTeams();
 	})
 	.catch(()=>{ renderTeams(); });
@@ -3038,43 +3032,50 @@ function loadTeams()
 function renderTeams()
 {
 	var cn = gId('teamName');
+	var sel = gId('teamSelect');
 	var found = false;
-	for (var i=0; i<teamsList.length; i++) {
-		if (teamsList[i].topic === currentTeamTopic) {
-			cn.textContent = teamsList[i].name;
-			found = true;
-			break;
-		}
-	}
-	if (!found) cn.textContent = currentTeamTopic || "None";
 
-	var html = "";
+	// Build dropdown options
+	var html = '<option value="">-- Select a Team --</option>';
 	for (var i=0; i<teamsList.length; i++) {
 		var t = teamsList[i];
-		var sel = (t.topic === currentTeamTopic) ? " active" : "";
-		html += '<div class="lstI">';
-		html += '<label class="radio schkl">';
-		html += '<input type="radio" name="team" value="' + t.topic + '"' + (sel ? ' checked' : '') + ' onchange="selectTeam(this.value)">';
-		html += '<div class="lstIcontent"><span class="lstIname' + sel + '">' + t.name + '</span></div>';
-		html += '</label></div>';
+		var isSelected = (t.deviceTopic === currentTeamTopic);
+		if (isSelected) {
+			cn.textContent = t.name;
+			found = true;
+		}
+		html += '<option value="' + t.deviceTopic + '"' + (isSelected ? ' selected' : '') + '>' + t.name + '</option>';
 	}
-	gId('teamList').innerHTML = html;
+	if (!found) cn.textContent = "None";
+	sel.innerHTML = html;
 }
 
-function selectTeam(topic)
+function selectTeam(deviceTopic)
 {
-	showToast("Switching team...");
+	if (!deviceTopic) return;
+	var team = null;
+	for (var i=0; i<teamsList.length; i++) {
+		if (teamsList[i].deviceTopic === deviceTopic) { team = teamsList[i]; break; }
+	}
+	if (!team) return;
+
+	showToast("Switching to " + team.name + "...");
 	fetch(getURL('/api/team'), {
 		method: 'POST',
 		headers: {"Content-Type": "application/json"},
-		body: JSON.stringify({topic: topic})
+		body: JSON.stringify({
+			deviceTopic: team.deviceTopic,
+			broker: "smckay79.no-ip.ca",
+			user: team.user,
+			pass: team.pass
+		})
 	})
 	.then(res => res.json())
 	.then(json => {
 		if (json.success) {
-			currentTeamTopic = topic;
+			currentTeamTopic = deviceTopic;
 			renderTeams();
-			showToast("Team updated!");
+			showToast(team.name + " selected!");
 		} else {
 			showToast("Failed to update team", true);
 		}

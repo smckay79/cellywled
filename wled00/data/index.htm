@@ -23,7 +23,6 @@
 			<button id="buttonSync" onclick="toggleSync()"><i class="icons">&#xe116;</i><p class="tab-label">Sync</p></button>
 			<button id="buttonSr" onclick="toggleLiveview()"><i class="icons">&#xe410;</i><p class="tab-label">Peek</p></button>
 			<button id="buttonI" onclick="toggleInfo()"><i class="icons">&#xe066;</i><p class="tab-label">Info</p></button>
-			<button id="buttonNodes" onclick="toggleNodes()"><i class="icons">&#xe22d;</i><p class="tab-label">Nodes</p></button>
 			<button onclick="window.location.href=getURL('/settings');"><i class="icons">&#xe0a2;</i><p class="tab-label">Config</p></button>
 			<button id="buttonPcm" onclick="togglePcMode(true)"><i class="icons">&#xe23d;</i><p class="tab-label">PC Mode</p></button>
 		</div>
@@ -298,6 +297,18 @@
 		</div>
 	</div>
 
+	<div id="Teams" class="tabcontent">
+		<p class="labels hd">Select Your Team</p>
+		<p id="teamCurrent" class="labels" style="text-align:center;padding:4px 0;">Current: <span id="teamName">None</span></p>
+		<div style="padding:8px 16px;">
+			<select id="teamSelect" class="sel-ple" onchange="selectTeam(this.value)" style="width:100%;padding:8px;font-size:16px;">
+				<option value="">-- Select a Team --</option>
+			</select>
+		</div>
+		<div style="padding:8px 0;text-align:center;">
+			<button class="btn btn-s" onclick="openTab(0)"><i class="icons btn-icon">&#xe2b3;</i> Back to Colors</button>
+		</div>
+	</div>
 </div>
 
 <div class="tab bot" id="bot">
