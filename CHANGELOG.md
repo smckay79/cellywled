@@ -1,5 +1,12 @@
 ## WLED changelog
 
+#### Build 2602180
+-   WLED 0.15.0 release
+-   Custom UI: removed Effects, Segments, and Presets tabs for simplified navigation
+-   Custom UI: added Teams section with Flames/Oilers team selection and MQTT integration
+-   OTA update page: added "Ignore firmware validation" option
+-   Version bump from 0.15.0-dev to 0.15.0 stable
+
 #### Build 2410270
 -   WLED 0.15.0-b7 release
 -   Re-license the WLED project from MIT to EUPL (#4194 by @Aircoookie)
