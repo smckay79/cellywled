@@ -1874,6 +1874,7 @@ function makeSeg()
 
 function resetUtil(off=false)
 {
+	if (!gId('segutil')) return;
 	gId('segutil').innerHTML = `<div class="seg btn btn-s${off?' off':''}" style="padding:0;margin-bottom:12px;">`
 	+ '<label class="check schkl"><input type="checkbox" id="selall" onchange="selSegAll(this)"><span class="checkmark"></span></label>'
 	+ `<div class="segname" ${off?'':'onclick="makeSeg()"'}><i class="icons btn-icon">&#xe18a;</i>Add segment</div>`
@@ -2119,6 +2120,7 @@ function makePlUtil()
 
 function resetPUtil()
 {
+	if (!gId('psFind')) return;
 	gId('psFind').classList.add('staytop');
 	let p = gId('putil');
 	p.classList.add('staybot');
@@ -2887,6 +2889,7 @@ function clean(clearButton) {
 }
 
 function initFilters() {
+	if (!gId("filters")) return;
 	gId("filters").querySelectorAll("input[type=checkbox]").forEach((e) => { e.checked = false; });
 }
 
