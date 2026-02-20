@@ -317,20 +317,14 @@ function openTab(tabI, force = false)
 	updateTablinks(tabI);
 	switch (tabI) {
 		case 0: window.location.hash = "Colors"; break;
-		case 1: window.location.hash = "Effects"; break;
-		case 2: window.location.hash = "Segments"; break;
-		case 3: window.location.hash = "Presets"; break;
-		case 4: window.location.hash = "Teams"; loadTeams(); break;
+		case 1: window.location.hash = "Teams"; loadTeams(); break;
 	}
 }
 
 function handleLocationHash() {
 	switch (window.location.hash) {
 		case "#Colors": openTab(0); break;
-		case "#Effects": openTab(1); break;
-		case "#Segments": openTab(2); break;
-		case "#Presets": openTab(3); break;
-		case "#Teams": openTab(4); break;
+		case "#Teams": openTab(1); break;
 	}
 }
 
@@ -3164,11 +3158,11 @@ function togglePcMode(fromB = false)
 	if (cpick) cpick.resize(pcMode && wW>1023 && wW<1250 ? 230 : 260); // for tablet in landscape
 	if (!fromB && ((wW < 1024 && lastw < 1024) || (wW >= 1024 && lastw >= 1024))) return; // no change in size and called from size()
 	if (pcMode) openTab(0, true);
-	gId('buttonPcm').className = (pcMode) ? "active":"";
+	if (gId('buttonPcm')) gId('buttonPcm').className = (pcMode) ? "active":"";
 	if (pcMode && !ap) gId('edit').classList.remove("hide"); else gId('edit').classList.add("hide");
 	gId('bot').style.height = (pcMode && !cfg.comp.pcmbot) ? "0":"auto";
 	sCol('--bh', gId('bot').clientHeight + "px");
-	_C.style.width = (pcMode || simplifiedUI)?'100%':'500%';
+	_C.style.width = (pcMode || simplifiedUI)?'100%':'200%';
 }
 
 function mergeDeep(target, ...sources)
@@ -3302,7 +3296,7 @@ function simplifyUI() {
 	gId("buttonNl").style.display = "none";
 	gId("buttonSync").style.display = "none";
 	gId("buttonSr").style.display = "none";
-	gId("buttonPcm").style.display = "none";
+	if (gId("buttonPcm")) gId("buttonPcm").style.display = "none";
 
 	// Hide bottom bar 
 	gId("bot").style.display = "none";
